@@ -1,28 +1,27 @@
 ---
-- name: Install and configure NTP
+- name: Install and configure Chrony
   hosts: all
   become: yes
   tasks:
-    - name: Install NTP package
+    - name: Install Chrony package
       yum:
-        name: ntp
+        name: chrony
         state: present
 
-    - name: Configure NTP server
+    - name: Configure NTP server in Chrony
       lineinfile:
-        path: /etc/ntp.conf
+        path: /etc/chrony.conf
         regexp: '^server'
-        line: "server ntp.amigo.local"
+        line: "server chrony.amigo.local iburst"
         state: present
-        create: yes
 
-    - name: Start and enable NTP service
+    - name: Start and enable Chrony service
       service:
-        name: ntpd
+        name: chronyd
         state: started
         enabled: yes
 
-    - name: Restart NTP service to apply changes
+    - name: Restart Chrony service to apply changes
       service:
-        name: ntpd
+        name: chronyd
         state: restarted
