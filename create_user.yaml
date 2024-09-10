@@ -1,0 +1,11 @@
+---
+- name: Create users
+  hosts: all
+  become: yes
+  tasks:
+    - name: Create users
+      user:
+        name: "{{ name }}"
+        password: "{{ password | password_hash('sha512') }}"
+        state: present
+
