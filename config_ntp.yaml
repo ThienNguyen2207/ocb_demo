@@ -1,0 +1,28 @@
+---
+- name: Install and configure NTP
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install NTP package
+      yum:
+        name: ntp
+        state: present
+
+    - name: Configure NTP server
+      lineinfile:
+        path: /etc/ntp.conf
+        regexp: '^server'
+        line: "server ntp.amigo.local"
+        state: present
+        create: yes
+
+    - name: Start and enable NTP service
+      service:
+        name: ntpd
+        state: started
+        enabled: yes
+
+    - name: Restart NTP service to apply changes
+      service:
+        name: ntpd
+        state: restarted
