@@ -1,0 +1,38 @@
+---
+- name: Configure VLAN on Cisco network interface and verify
+  hosts: cisco_devices
+  gather_facts: no
+  become: yes
+  tasks:
+
+    - name: Ensure the VLAN exists on the switch
+      cisco.ios.ios_vlan:
+        vlan_id: 100
+        name: My_VLAN
+        state: present
+
+    - name: Configure VLAN on interface
+      cisco.ios.ios_interface:
+        name: GigabitEthernet1/0/1
+        description: "VLAN 100 on interface"
+        switchport_mode: trunk
+        trunk_allowed_vlans: 100
+        state: present
+
+    - name: Verify VLAN is tagged on interface
+      cisco.ios.ios_command:
+        commands:
+          - show interfaces GigabitEthernet1/0/1 switchport
+      register: interface_output
+
+    - name: Ensure VLAN 100 is tagged in the output
+      assert:
+        that:
+          - "'100' in interface_output.stdout[0]"
+
+    - name: Ping to verify connectivity on VLAN 100
+      wait_for:
+        host: 192.168.100.1
+        port: 7
+        timeout: 5
+      ignore_errors: yes
