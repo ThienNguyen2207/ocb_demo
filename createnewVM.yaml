@@ -1,0 +1,56 @@
+---
+- name: Create a VM from template on vCenter
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vcenter_hostname: "vcenter.example.com"
+    vcenter_username: "administrator@vsphere.local"
+    vcenter_password: "your_password"
+    vcenter_datacenter: "Datacenter1"
+    vcenter_cluster: "Cluster1"
+    vcenter_datastore: "Datastore1"
+    vcenter_network: "VM_Network"
+    template_name: "MyTemplate"
+    vm_name: "New_VM"
+    vm_folder: "VMs"
+    vm_cpu: 2
+    vm_memory: 4096  # Memory in MB
+    vm_guest_os: "rhel7_64Guest"
+    vm_disk_size: 20  # Disk size in GB
+
+  tasks:
+    - name: Create VM from template
+      community.vmware.vmware_guest:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        datacenter: "{{ vcenter_datacenter }}"
+        cluster: "{{ vcenter_cluster }}"
+        template: "{{ template_name }}"
+        name: "{{ vm_name }}"
+        folder: "{{ vm_folder }}"
+        networks:
+          - name: "{{ vcenter_network }}"
+            type: static
+        disk:
+          - size_gb: "{{ vm_disk_size }}"
+            type: thin
+        hardware:
+          memory_mb: "{{ vm_memory }}"
+          num_cpus: "{{ vm_cpu }}"
+        state: powered_on
+      delegate_to: localhost
+
+    - name: Verify VM creation
+      community.vmware.vmware_guest_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        name: "{{ vm_name }}"
+      register: vm_info
+
+    - name: Display VM information
+      debug:
+        var: vm_info
